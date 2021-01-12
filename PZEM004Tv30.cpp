@@ -51,7 +51,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define PZEM_BAUD_RATE 9600
 
-extern HardwareSerial Serial;
+//extern HardwareSerial Serial;
 
 
 
@@ -98,14 +98,13 @@ PZEM004Tv30::PZEM004Tv30(uint8_t receivePin, uint8_t transmitPin, uint8_t addr)
  * @param port Hardware serial to use
  * @param addr Slave address of device
 */
-PZEM004Tv30::PZEM004Tv30(HardwareSerial* port, uint8_t addr)
-{
-    port->begin(PZEM_BAUD_RATE);
-    this->_serial = port;
-    this->_isSoft = false;
-    init(addr);
-}
 
+PZEM004Tv30::PZEM004Tv30(HardwareSerial& port, uint8_t addr) :
+_serial(port)
+{
+this->_serial = port;
+init(addr);
+}
 /*!
  * PZEM004Tv30::~PZEM004Tv30
  *
@@ -114,8 +113,8 @@ PZEM004Tv30::PZEM004Tv30(HardwareSerial* port, uint8_t addr)
 */
 PZEM004Tv30::~PZEM004Tv30()
 {
-    if(_isSoft)
-        delete this->_serial;
+//    if(_isSoft)
+//        delete this->_serial;
 }
 
 /*!
@@ -241,7 +240,7 @@ bool PZEM004Tv30::sendCmd8(uint8_t cmd, uint16_t rAddr, uint16_t val, bool check
 
     setCRC(sendBuffer, 8);                   // Set CRC of frame
 
-    _serial->write(sendBuffer, 8); // send frame
+    _serial.write(sendBuffer, 8); // send frame
 
     if(check) {
         if(!recieve(respBuffer, 8)){ // if check enabled, read the response
@@ -428,7 +427,7 @@ bool PZEM004Tv30::resetEnergy(){
     buffer[0] = _addr;
 
     setCRC(buffer, 4);
-    _serial->write(buffer, 4);
+    _serial.write(buffer, 4);
 
     uint16_t length = recieve(reply, 5);
 
@@ -460,9 +459,9 @@ uint16_t PZEM004Tv30::recieve(uint8_t *resp, uint16_t len)
     uint8_t index = 0; // Bytes we have read
     while((index < len) && (millis() - startTime < READ_TIMEOUT))
     {
-        if(_serial->available() > 0)
+        if(_serial.available() > 0)
         {
-            uint8_t c = (uint8_t)_serial->read();
+            uint8_t c = (uint8_t)_serial.read();
 
             resp[index++] = c;
         }
